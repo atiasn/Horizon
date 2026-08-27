@@ -127,10 +127,10 @@
       "subreddits": [
         {
           "subreddit": "MachineLearning",
-          "enabled": true,
+          "enabled": false,
           "sort": "hot",
           "time_filter": "day",
-          "fetch_limit": 10,
+          "fetch_limit": 8,
           "min_score": 60,
           "profile": "tech-news"
         },
@@ -139,7 +139,7 @@
           "enabled": true,
           "sort": "hot",
           "time_filter": "day",
-          "fetch_limit": 10,
+          "fetch_limit": 8,
           "min_score": 60,
           "profile": "tech-news"
         }
