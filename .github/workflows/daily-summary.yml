@@ -1,0 +1,69 @@
+name: Daily Horizon Summary
+
+on:
+  schedule:
+    # GitHub scheduled workflows use UTC. 23:00 UTC = 07:00 Asia/Shanghai.
+    # Runs early to offset the observed schedule delay on busy cron slots.
+    - cron: '0 23 * * *'
+  workflow_dispatch:      # Allow manual trigger
+
+# Prevent overlapping runs of the same workflow (a slow run won't pile up).
+concurrency:
+  group: daily-summary
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # Needed to push the generated digest to gh-pages
+
+jobs:
+  daily-summary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20   # Safety net; a normal run finishes in <10 min
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.11.26"
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen --no-dev
+
+      - name: Prepare GitHub Actions config
+        # config.github.json is preconfigured for GLM (ZhipuAI).
+        run: cp data/config.github.json data/config.json
+
+      - name: Run Horizon
+        env:
+          # GLM (ZhipuAI) — the provider configured in config.github.json.
+          # Add this secret in: Settings → Secrets and variables → Actions.
+          ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
+          # Optional: higher GitHub API rate limit when scraping github sources.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: webhook delivery (e.g. Feishu/DingTalk/Slack).
+          HORIZON_WEBHOOK_URL: ${{ secrets.HORIZON_WEBHOOK_URL }}
+          # Optional: LWN.net subscriber full-text feed.
+          LWN_KEY: ${{ secrets.LWN_KEY }}
+        run: uv run horizon --hours 24
+
+      - name: Set current date as environment variable
+        run: echo "DATE=$(date -u +'%Y-%m-%d')" >> "$GITHUB_ENV"
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          keep_files: true              # Keep existing daily summaries on gh-pages
+          commit_message: "📝 Daily Summary: ${{ env.DATE }}"
+          publish_branch: gh-pages
+          enable_jekyll: true           # GitHub Pages builds the site from docs/
