@@ -62,9 +62,7 @@ Supported formats:
 
 ```json
 {
-  "OPENAI_API_KEY": "sk-xxxx",
-  "ANTHROPIC_API_KEY": "sk-ant-xxxx",
-  "GOOGLE_API_KEY": "xxxx",
+  "AI_API_KEY": "xxxx",
   "GITHUB_TOKEN": "ghp_xxxx"
 }
 ```
@@ -72,9 +70,7 @@ Supported formats:
 ```json
 {
   "env": {
-    "OPENAI_API_KEY": "sk-xxxx",
-    "ANTHROPIC_API_KEY": "sk-ant-xxxx",
-    "GOOGLE_API_KEY": "xxxx",
+    "AI_API_KEY": "xxxx",
     "GITHUB_TOKEN": "ghp_xxxx"
   }
 }

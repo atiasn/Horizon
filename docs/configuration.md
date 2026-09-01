@@ -107,31 +107,15 @@ rules, and block tool permissions.
 
 Configure which AI model analyzes and enriches your content.
 
-`api_key_env` is always an environment variable name, not the API key value.
-Store secrets in `.env` or your shell environment, then point `api_key_env` at
-that variable:
+All cloud AI providers read their key from the provider-agnostic `AI_API_KEY`
+environment variable. Store it in `.env` or your shell environment:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
-GOOGLE_API_KEY=your-gemini-key
+AI_API_KEY=your-key
 ```
 
-When Horizon starts, environment variables have priority because
-the active config file does not store the secret. For local VS Code runs, create
+The active config file never stores the secret. For local VS Code runs, create
 `.env` in the repository root and launch Horizon from that same root directory.
-
-Common API key variable names:
-
-| Provider | `api_key_env` value |
-| --- | --- |
-| Anthropic | `ANTHROPIC_API_KEY` |
-| OpenAI | `OPENAI_API_KEY` |
-| Azure OpenAI | `AZURE_OPENAI_API_KEY` |
-| Gemini | `GOOGLE_API_KEY` |
-| MiniMax | `MINIMAX_API_KEY` |
-| Aliyun DashScope | `DASHSCOPE_API_KEY` |
-| Doubao | `DOUBAO_API_KEY` |
-| DeepSeek | `DEEPSEEK_API_KEY` |
 
 **Anthropic Claude**:
 
@@ -140,7 +124,6 @@ Common API key variable names:
   "ai": {
     "provider": "anthropic",
     "model": "claude-sonnet-4.5-20250929",
-    "api_key_env": "ANTHROPIC_API_KEY",
     "throttle_sec": 0
   }
 }
@@ -153,7 +136,6 @@ Common API key variable names:
   "ai": {
     "provider": "openai",
     "model": "gpt-4",
-    "api_key_env": "OPENAI_API_KEY",
     "throttle_sec": 0
   }
 }
@@ -166,7 +148,6 @@ Common API key variable names:
   "ai": {
     "provider": "gemini",
     "model": "gemini-2.0-flash",
-    "api_key_env": "GOOGLE_API_KEY",
     "throttle_sec": 0
   }
 }
@@ -179,7 +160,6 @@ Common API key variable names:
   "ai": {
     "provider": "azure",
     "model": "gpt-4o-production",
-    "api_key_env": "AZURE_OPENAI_API_KEY",
     "azure_endpoint_env": "AZURE_OPENAI_ENDPOINT",
     "api_version": "2024-10-21",
     "throttle_sec": 0
@@ -187,7 +167,7 @@ Common API key variable names:
 }
 ```
 
-Set `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` in your `.env`. The `model` field should be your Azure deployment name, not just the base model family name.
+Set `AI_API_KEY` and `AZURE_OPENAI_ENDPOINT` in your `.env`. The `model` field should be your Azure deployment name, not just the base model family name.
 
 **MiniMax**:
 
@@ -199,7 +179,6 @@ OpenAI-compatible endpoint:
   "ai": {
     "provider": "minimax",
     "model": "MiniMax-M3",
-    "api_key_env": "MINIMAX_API_KEY",
     "base_url": "https://api.minimax.io/v1",
     "throttle_sec": 0
   }
@@ -225,7 +204,6 @@ request:
   "ai": {
     "provider": "minimax",
     "model": "MiniMax-M3",
-    "api_key_env": "MINIMAX_API_KEY",
     "base_url": "https://api.minimax.io/anthropic",
     "throttle_sec": 0
   }
@@ -239,13 +217,12 @@ request:
   "ai": {
     "provider": "ali",
     "model": "qwen-plus",
-    "api_key_env": "DASHSCOPE_API_KEY",
     "throttle_sec": 0
   }
 }
 ```
 
-Use the [DashScope compatible-mode](https://help.aliyun.com/zh/dashscope/developer-reference/use-dashscope-by-calling-openai-api) endpoint. Set `DASHSCOPE_API_KEY` in your `.env`. Optional: set `base_url` to override the default `https://dashscope.aliyuncs.com/compatible-mode/v1`.
+Use the [DashScope compatible-mode](https://help.aliyun.com/zh/dashscope/developer-reference/use-dashscope-by-calling-openai-api) endpoint. Set `AI_API_KEY` in your `.env`. Optional: set `base_url` to override the default `https://dashscope.aliyuncs.com/compatible-mode/v1`.
 
 **Ollama**:
 
@@ -254,7 +231,6 @@ Use the [DashScope compatible-mode](https://help.aliyun.com/zh/dashscope/develop
   "ai": {
     "provider": "ollama",
     "model": "llama3.1",
-    "api_key_env": "",
     "base_url": "http://192.168.1.10:11434",
     "throttle_sec": 0
   }
@@ -913,6 +889,15 @@ uv run horizon-webhook --dry-run
 ## Static Site
 
 Horizon writes generated summaries to `data/summaries/` (or `<data-dir>/summaries/` when `--data-dir` is set) and copies publishable Markdown into `docs/` for the GitHub Pages site. The repository includes a ready-to-use workflow at `.github/workflows/daily-summary.yml`.
+
+For that workflow, configure these under **Settings → Secrets and variables → Actions**:
+
+- Repository variables: `AI_PROVIDER`, `AI_MODEL`, `AI_BASE_URL`
+- Repository secret: `AI_API_KEY`
+
+Non-empty `AI_PROVIDER`, `AI_MODEL`, and `AI_BASE_URL` values override their
+matching `ai` fields in `data/config.json`. `AI_API_KEY` is the only API key
+environment variable used by Horizon.
 
 To use GitHub Pages, enable Pages for the repository and run the scheduled workflow or trigger it manually. The generated site is built from the `docs/` directory.
 

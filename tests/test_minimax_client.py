@@ -10,7 +10,7 @@ import httpx
 import pytest
 from anthropic import AsyncAnthropic
 
-from src.ai.client import AnthropicClient, OpenAIClient, create_ai_client
+from src.ai.client import AnthropicClient, OpenAIClient, _resolve_api_key, create_ai_client
 from src.models import AIConfig, AIProvider, AI_PROVIDER_DEFAULTS
 
 
@@ -18,7 +18,6 @@ def _make_config(**overrides) -> AIConfig:
     defaults = {
         "provider": AIProvider.MINIMAX,
         "model": "MiniMax-M3",
-        "api_key_env": "MINIMAX_API_KEY",
         "temperature": 0.3,
         "max_tokens": 4096,
     }
@@ -30,7 +29,6 @@ def _make_ollama_config(**overrides) -> AIConfig:
     defaults = {
         "provider": AIProvider.OLLAMA,
         "model": "llama3.1",
-        "api_key_env": "",
         "temperature": 0.3,
         "max_tokens": 4096,
     }
@@ -38,59 +36,46 @@ def _make_ollama_config(**overrides) -> AIConfig:
     return AIConfig(**defaults)
 
 
+def test_resolve_api_key_uses_generic_key(monkeypatch):
+    monkeypatch.setenv("AI_API_KEY", "generic-key")
+
+    assert _resolve_api_key() == "generic-key"
+
+
+def test_empty_generic_api_key_is_missing(monkeypatch):
+    monkeypatch.setenv("AI_API_KEY", "")
+
+    with pytest.raises(ValueError, match="set AI_API_KEY"):
+        _resolve_api_key()
+
+
 class TestOpenAIClientInit:
     def test_creates_instance_with_valid_config(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config())
         assert client.model == "MiniMax-M3"
         assert client.max_tokens == 4096
         assert client.provider == "minimax"
 
     def test_raises_when_api_key_missing(self, monkeypatch):
-        monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
+        monkeypatch.delenv("AI_API_KEY", raising=False)
         with pytest.raises(ValueError, match="Missing API key"):
             OpenAIClient(_make_config())
 
-    def test_rejects_literal_api_key_in_api_key_env_without_leaking_it(self, monkeypatch):
-        literal_key = "sk-test1234567890"
-        monkeypatch.delenv(literal_key, raising=False)
-
-        with pytest.raises(ValueError) as exc:
-            OpenAIClient(_make_config(api_key_env=literal_key))
-
-        message = str(exc.value)
-        assert literal_key not in message
-        assert "api_key_env" in message
-        assert "environment variable name" in message
-        assert "MINIMAX_API_KEY" in message
-
-    def test_does_not_echo_identifier_shaped_api_key(self, monkeypatch):
-        literal_key = "a2c9f1b4e6d7a3c0b5e8d1f9a4c2e6b8"
-        monkeypatch.delenv(literal_key, raising=False)
-
-        with pytest.raises(ValueError) as exc:
-            OpenAIClient(_make_config(api_key_env=literal_key))
-
-        message = str(exc.value)
-        assert literal_key not in message
-        assert "api_key_env" in message
-        assert "MINIMAX_API_KEY" in message
-
     def test_uses_provider_default_base_url(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config())
         assert str(client.client.base_url).rstrip("/").endswith("api.minimax.io/v1")
 
     def test_uses_china_openai_compatible_base_url(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(base_url="https://api.minimaxi.com/v1"))
         assert str(client.client.base_url).rstrip("/") == "https://api.minimaxi.com/v1"
 
     def test_uses_default_base_url_for_ali(self, monkeypatch):
-        monkeypatch.setenv("ALI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.ALI,
-            api_key_env="ALI_API_KEY",
         ))
         assert "dashscope.aliyuncs.com" in str(client.client.base_url)
 
@@ -143,7 +128,7 @@ class TestOpenAIClientInit:
 
 class TestOpenAIClientComplete:
     def test_basic_completion(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config())
 
         mock_response = MagicMock()
@@ -165,7 +150,7 @@ class TestOpenAIClientComplete:
         assert "response_format" not in call_kwargs
 
     def test_temperature_zero_clamped_for_minimax(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config())
 
         mock_response = MagicMock()
@@ -184,10 +169,9 @@ class TestOpenAIClientComplete:
         assert call_kwargs["temperature"] > 0
 
     def test_response_format_present_for_openai(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         mock_response = MagicMock()
@@ -223,10 +207,9 @@ class TestTemperatureFallback:
         return resp
 
     def test_sends_temperature_by_default(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         with patch.object(
@@ -239,10 +222,9 @@ class TestTemperatureFallback:
         assert client._supports_temperature is True
 
     def test_retries_without_temperature_on_deprecated_error(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         first_error = Exception(
@@ -263,10 +245,9 @@ class TestTemperatureFallback:
         assert client._supports_temperature is False
 
     def test_does_not_retry_for_unrelated_error(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         boom = Exception("500 Internal Server Error")
@@ -281,10 +262,9 @@ class TestTemperatureFallback:
         assert client._supports_temperature is True
 
     def test_subsequent_calls_skip_temperature_after_fallback(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         client._supports_temperature = False
@@ -305,10 +285,9 @@ class TestTemperatureFallback:
     def test_detects_various_temperature_error_messages(
         self, monkeypatch, msg
     ):
-        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         client = OpenAIClient(_make_config(
             provider=AIProvider.OPENAI,
-            api_key_env="OPENAI_API_KEY",
         ))
 
         with patch.object(
@@ -328,7 +307,7 @@ class TestFactoryFunction:
         assert defaults["base_url"] == "https://api.minimax.io/v1"
 
     def test_creates_openai_client_for_minimax(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         config = _make_config()
         client = create_ai_client(config)
         assert isinstance(client, OpenAIClient)
@@ -344,7 +323,7 @@ class TestFactoryFunction:
     def test_anthropic_compatible_base_url_builds_messages_path(
         self, monkeypatch, base_url
     ):
-        monkeypatch.setenv("MINIMAX_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         requests = []
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -383,10 +362,9 @@ class TestFactoryFunction:
         ]
 
     def test_creates_openai_client_for_deepseek(self, monkeypatch):
-        monkeypatch.setenv("DEEPSEEK_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         config = _make_config(
             provider=AIProvider.DEEPSEEK,
-            api_key_env="DEEPSEEK_API_KEY",
         )
         client = create_ai_client(config)
         assert isinstance(client, OpenAIClient)

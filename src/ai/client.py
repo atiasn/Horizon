@@ -1,7 +1,6 @@
 """AI client abstraction supporting multiple providers."""
 
 import os
-import re
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 from openai import AsyncAzureOpenAI, AsyncOpenAI
@@ -18,66 +17,13 @@ from .tokens import record_usage
 logger = logging.getLogger(__name__)
 
 
-_ENV_VAR_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-_SECRET_PREFIXES = (
-    "sk-",
-    "sk_",
-    "AIza",
-    "xai-",
-    "gsk_",
-    "hf_",
-)
-_DEFAULT_API_KEY_ENVS = {
-    AIProvider.ANTHROPIC: "ANTHROPIC_API_KEY",
-    AIProvider.OPENAI: "OPENAI_API_KEY",
-    AIProvider.AZURE: "AZURE_OPENAI_API_KEY",
-    AIProvider.ALI: "DASHSCOPE_API_KEY",
-    AIProvider.GEMINI: "GOOGLE_API_KEY",
-    AIProvider.DOUBAO: "DOUBAO_API_KEY",
-    AIProvider.MINIMAX: "MINIMAX_API_KEY",
-    AIProvider.DEEPSEEK: "DEEPSEEK_API_KEY",
-}
-
-
-def _resolve_api_key(config: AIConfig, *, fallback: Optional[str] = None) -> str:
-    api_key = os.getenv(config.api_key_env)
+def _resolve_api_key(*, fallback: Optional[str] = None) -> str:
+    api_key = os.getenv("AI_API_KEY")
     if api_key:
         return api_key
     if fallback is not None:
         return fallback
-    raise ValueError(_missing_api_key_message(config))
-
-
-def _missing_api_key_message(config: AIConfig) -> str:
-    expected_env = _DEFAULT_API_KEY_ENVS.get(config.provider)
-    if expected_env:
-        setup_hint = (
-            f"Set {expected_env}=your_api_key in .env or your shell, then set "
-            f'ai.api_key_env to "{expected_env}" in data/config.json.'
-        )
-    else:
-        setup_hint = (
-            "Set the provider API key in .env or your shell, then set "
-            "ai.api_key_env to that environment variable name in data/config.json."
-        )
-
-    if _looks_like_api_key_value(config.api_key_env):
-        return (
-            "Missing API key: ai.api_key_env must be an environment variable "
-            f"name, not the API key value. {setup_hint}"
-        )
-
-    return (
-        "Missing API key environment variable configured by ai.api_key_env. "
-        "ai.api_key_env should contain the environment variable name, not the "
-        f"key value. {setup_hint}"
-    )
-
-
-def _looks_like_api_key_value(value: str) -> bool:
-    if value.startswith(_SECRET_PREFIXES):
-        return True
-    return not bool(_ENV_VAR_RE.fullmatch(value))
+    raise ValueError("Missing API key: set AI_API_KEY in .env or your shell.")
 
 
 def _normalize_ollama_base_url(base_url: str) -> str:
@@ -125,7 +71,7 @@ class AnthropicClient(AIClient):
         """
         self.config = config
 
-        api_key = _resolve_api_key(config)
+        api_key = _resolve_api_key()
 
         kwargs = {"api_key": api_key}
         if config.base_url:
@@ -204,7 +150,7 @@ class OpenAIClient(AIClient):
         self.config = config
 
         fallback = "no_key" if config.provider == AIProvider.OLLAMA else None
-        api_key = _resolve_api_key(config, fallback=fallback)
+        api_key = _resolve_api_key(fallback=fallback)
 
         kwargs = {"api_key": api_key}
         base_url = self._resolve_base_url(config)
@@ -366,7 +312,7 @@ class AzureOpenAIClient(AIClient):
         """
         self.config = config
 
-        api_key = _resolve_api_key(config)
+        api_key = _resolve_api_key()
         if not config.azure_endpoint_env:
             raise ValueError("azure_endpoint_env is required for azure provider")
         azure_endpoint = os.getenv(config.azure_endpoint_env)
@@ -486,7 +432,7 @@ class GeminiClient(AIClient):
         """
         self.config = config
 
-        api_key = _resolve_api_key(config)
+        api_key = _resolve_api_key()
 
         self.client = genai.Client(api_key=api_key)
         self.model = config.model
@@ -653,7 +599,6 @@ def _create_chained_client(config: AIConfig) -> ChainedAIClient:
         cfg = AIConfig(
             provider=provider,
             model=defaults.get("model", config.model),
-            api_key_env=defaults.get("api_key_env", config.api_key_env),
             base_url=base_url,
             temperature=config.temperature,
             max_tokens=config.max_tokens,

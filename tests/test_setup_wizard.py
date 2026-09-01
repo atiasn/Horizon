@@ -22,7 +22,7 @@ def _prepare_main(monkeypatch, load_presets_calls):
     monkeypatch.setattr(
         wizard,
         "configure_ai",
-        lambda: AIConfig(provider=AIProvider.OLLAMA, model="llama3.1", api_key_env=""),
+        lambda: AIConfig(provider=AIProvider.OLLAMA, model="llama3.1"),
     )
     monkeypatch.setattr(wizard, "get_interests", lambda: "test interests")
     monkeypatch.setattr(wizard, "load_presets", fake_load_presets)
@@ -34,7 +34,6 @@ def test_configure_ai_allows_ollama_without_api_key(monkeypatch):
             "ollama",
             "llama3.2",
             "http://nas.local:11434",
-            "",
             "zh,en",
         ]
     )
@@ -54,19 +53,17 @@ def test_configure_ai_allows_ollama_without_api_key(monkeypatch):
         provider=AIProvider.OLLAMA,
         model="llama3.2",
         base_url="http://nas.local:11434",
-        api_key_env="",
         temperature=0.3,
         max_tokens=8192,
         languages=["zh", "en"],
     )
-    assert prompt_consoles == [wizard.console] * 5
+    assert prompt_consoles == [wizard.console] * 4
 
 
 def test_ai_recommendations_available_for_ollama_without_api_key():
     config = AIConfig(
         provider=AIProvider.OLLAMA,
         model="llama3.1",
-        api_key_env="",
     )
 
     assert wizard._ai_recommendations_available(config) is True
@@ -76,18 +73,17 @@ def test_ai_recommendations_require_api_key_for_cloud_provider(monkeypatch):
     config = AIConfig(
         provider=AIProvider.OPENAI,
         model="gpt-4",
-        api_key_env="OPENAI_API_KEY",
     )
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("AI_API_KEY", raising=False)
 
     assert wizard._ai_recommendations_available(config) is False
 
-    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("AI_API_KEY", "test-key")
     assert wizard._ai_recommendations_available(config) is True
 
 
 def test_build_config_hackernews_follows_selection_and_count():
-    ai = AIConfig(provider=AIProvider.OLLAMA, model="llama3.1", api_key_env="")
+    ai = AIConfig(provider=AIProvider.OLLAMA, model="llama3.1")
 
     rss_config = wizard.build_config(
         ai,
@@ -111,7 +107,7 @@ def test_build_config_hackernews_follows_selection_and_count():
 def test_merge_configs_preserves_all_existing_configuration_and_deduplicates_lists():
     existing = Config.model_validate(
         {
-            "ai": {"provider": "openai", "model": "old", "api_key_env": "OLD_KEY"},
+            "ai": {"provider": "openai", "model": "old"},
             "collection": {"time_window_hours": 36},
             "digest": {"max_items": 9},
             "extractors": {"html": {"type": "trafilatura", "favor_precision": True}},
@@ -145,7 +141,7 @@ def test_merge_configs_preserves_all_existing_configuration_and_deduplicates_lis
         }
     )
     new = wizard.build_config(
-        AIConfig(provider=AIProvider.OLLAMA, model="new", api_key_env=""),
+        AIConfig(provider=AIProvider.OLLAMA, model="new"),
         [
             {"type": "github_user", "config": {"username": "alice"}},
             {"type": "github_user", "config": {"username": "alice"}},

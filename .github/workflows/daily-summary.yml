@@ -20,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20   # Safety net; a normal run finishes in <10 min
 
+    env:
+      # Generic AI provider configuration.
+      AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -39,14 +46,29 @@ jobs:
         run: uv sync --frozen --no-dev
 
       - name: Prepare GitHub Actions config
-        # config.github.json is preconfigured for GLM (ZhipuAI).
+        # Base configuration; AI_* environment variables override AI fields.
         run: cp data/config.github.json data/config.json
+
+      - name: Validate AI configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for name in AI_PROVIDER AI_MODEL AI_BASE_URL AI_API_KEY; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::${name} is not configured."
+              exit 1
+            fi
+          done
+
+          echo "AI provider configuration:"
+          echo "  provider = ${AI_PROVIDER}"
+          echo "  model    = ${AI_MODEL}"
+          echo "  base_url = ${AI_BASE_URL}"
+          echo "  api_key  = configured"
 
       - name: Run Horizon
         env:
-          # GLM (ZhipuAI) — the provider configured in config.github.json.
-          # Add this secret in: Settings → Secrets and variables → Actions.
-          ZHIPUAI_API_KEY: ${{ secrets.ZHIPUAI_API_KEY }}
           # Optional: higher GitHub API rate limit when scraping github sources.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Optional: webhook delivery (e.g. Feishu/DingTalk/Slack).

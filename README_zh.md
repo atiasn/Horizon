@@ -247,8 +247,7 @@ cp data/config.example.json data/config.json  # 自定义信息源
 {
   "ai": {
     "provider": "openai",
-    "model": "gpt-4",
-    "api_key_env": "OPENAI_API_KEY"
+    "model": "gpt-4"
   },
   "sources": {
     "rss": [
@@ -304,6 +303,8 @@ cp data/config.example.json data/config.json  # 自定义信息源
 
 分组限额在配置文件筛选之后、内容补充之前执行。未配置
 `category_groups` 和 `max_items` 时，不应用均衡日报限额。
+
+所有云端 AI Provider 都从通用环境变量 `AI_API_KEY` 读取密钥；不要将密钥写入 `data/config.json`。
 
 `data/config.json` 里的任意字符串值都可以通过 `${VAR_NAME}` 引用环境变量。这适合用于 `ai.base_url`、私有 RSS 链接、Webhook 地址或自定义请求头模板等字段。
 

@@ -66,7 +66,6 @@ def test_load_config_expands_env_vars(tmp_path: Path, monkeypatch) -> None:
                 "ai": {
                     "provider": "openai",
                     "model": "test-model",
-                    "api_key_env": "OPENAI_API_KEY",
                     "base_url": "${TEST_BASE_URL}/v1",
                 },
                 "sources": {},
@@ -77,11 +76,13 @@ def test_load_config_expands_env_vars(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
     monkeypatch.setenv("TEST_BASE_URL", "https://api.example.com")
+    monkeypatch.setenv("AI_MODEL", "override-model")
     runtime = load_runtime(Path(__file__).resolve().parents[1])
 
     config = load_config(runtime, config_path)
 
     assert config.ai.base_url == "https://api.example.com/v1"
+    assert config.ai.model == "override-model"
 
 
 def test_apply_source_filter_handles_twitter_and_openbb() -> None:
@@ -90,7 +91,6 @@ def test_apply_source_filter_handles_twitter_and_openbb() -> None:
             "ai": {
                 "provider": AIProvider.OPENAI,
                 "model": "test-model",
-                "api_key_env": "OPENAI_API_KEY",
             },
             "sources": {
                 "twitter": {"enabled": True, "users": ["openai"]},
@@ -120,7 +120,7 @@ def test_mcp_source_registry_covers_model_source_types() -> None:
 def test_mcp_filter_and_reporting_support_every_registered_source() -> None:
     config = Config.model_validate(
         {
-            "ai": {"provider": "openai", "model": "test", "api_key_env": "KEY"},
+            "ai": {"provider": "openai", "model": "test"},
             "collection": {},
             "digest": {},
             "sources": {

@@ -9,7 +9,6 @@ MINIMAL_CONFIG = {
     "ai": {
         "provider": "openai",
         "model": "test",
-        "api_key_env": "OPENAI_API_KEY",
     },
     "sources": {},
 }

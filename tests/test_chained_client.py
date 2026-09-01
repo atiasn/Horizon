@@ -39,11 +39,10 @@ class _MockFactory:
         return client
 
 
-def _make_config(provider: AIProvider, model: str = "m", api_key_env: str = "K") -> AIConfig:
+def _make_config(provider: AIProvider, model: str = "m") -> AIConfig:
     return AIConfig(
         provider=provider,
         model=model,
-        api_key_env=api_key_env,
     )
 
 
@@ -164,7 +163,6 @@ def test_create_chained_client_parses_chain():
     config = AIConfig(
         provider=AIProvider.OPENAI,
         model="m1",
-        api_key_env="K1",
         provider_chain="openai,ollama",
     )
     chained = _create_chained_client(config)
@@ -172,7 +170,6 @@ def test_create_chained_client_parses_chain():
     assert chained.configs[0].provider == AIProvider.OPENAI
     assert chained.configs[1].provider == AIProvider.OLLAMA
     assert chained.configs[1].model == "llama3.1"
-    assert chained.configs[1].api_key_env == ""
 
 
 def test_create_chained_client_uses_provider_defaults_without_leaking_base_url():
@@ -182,7 +179,6 @@ def test_create_chained_client_uses_provider_defaults_without_leaking_base_url()
         provider=AIProvider.OPENAI,
         provider_chain=",".join(provider.value for provider in providers),
         model="custom-primary-model",
-        api_key_env="CUSTOM_PRIMARY_API_KEY",
         base_url="https://primary.example/v1",
         temperature=0.17,
         max_tokens=1234,
@@ -198,7 +194,6 @@ def test_create_chained_client_uses_provider_defaults_without_leaking_base_url()
     for entry in chained.configs:
         defaults = AI_PROVIDER_DEFAULTS[entry.provider]
         assert entry.model == defaults["model"]
-        assert entry.api_key_env == defaults["api_key_env"]
         expected_base_url = (
             config.base_url
             if entry.provider == config.provider
@@ -218,7 +213,6 @@ def test_create_chained_client_preserves_custom_azure_and_common_settings():
         provider=AIProvider.AZURE,
         provider_chain="azure,openai",
         model="custom-deployment",
-        api_key_env="CUSTOM_AZURE_API_KEY",
         base_url="https://unused-azure-base.example",
         azure_endpoint_env="CUSTOM_AZURE_ENDPOINT",
         api_version="2025-01-01-preview",
@@ -250,7 +244,6 @@ def test_create_chained_client_applies_azure_connection_defaults():
         provider=AIProvider.OPENAI,
         provider_chain="openai,azure",
         model="m1",
-        api_key_env="K1",
     )
 
     azure = _create_chained_client(config).configs[1]
@@ -264,7 +257,6 @@ def test_create_chained_client_rejects_unknown_provider():
     config = AIConfig(
         provider=AIProvider.OPENAI,
         model="m1",
-        api_key_env="K1",
         provider_chain="openai,unknownprovider",
     )
     with pytest.raises(ValueError, match="Unsupported AI provider in chain"):

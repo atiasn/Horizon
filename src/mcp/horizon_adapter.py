@@ -27,14 +27,12 @@ class HorizonRuntime:
 
     horizon_path: Path
     ContentItem: Any
-    Config: Any
     StorageManager: Any
     HorizonOrchestrator: Any
     create_ai_client: Any
     ContentAnalyzer: Any
     ContentEnricher: Any
     DailySummarizer: Any
-    expand_env_vars: Any
 
 
 def resolve_horizon_path(explicit: str | None = None) -> Path:
@@ -134,14 +132,12 @@ def load_runtime(horizon_path: Path) -> HorizonRuntime:
     return HorizonRuntime(
         horizon_path=horizon_path,
         ContentItem=models.ContentItem,
-        Config=models.Config,
         StorageManager=storage.StorageManager,
         HorizonOrchestrator=orchestrator.HorizonOrchestrator,
         create_ai_client=ai_client.create_ai_client,
         ContentAnalyzer=analyzer.ContentAnalyzer,
         ContentEnricher=enricher.ContentEnricher,
         DailySummarizer=summarizer.DailySummarizer,
-        expand_env_vars=storage._expand_env_vars,
     )
 
 
@@ -149,10 +145,10 @@ def load_config(runtime: HorizonRuntime, config_path: Path) -> Any:
     """Load Horizon config using native pydantic model."""
 
     try:
-        payload = runtime.expand_env_vars(
-            json.loads(config_path.read_text(encoding="utf-8"))
-        )
-        return runtime.Config.model_validate(payload)
+        return runtime.StorageManager(
+            data_dir=str(config_path.parent),
+            config_path=str(config_path),
+        ).load_config()
     except Exception as exc:
         raise HorizonMcpError(
             code="HZ_CONFIG_INVALID",

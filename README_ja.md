@@ -238,8 +238,7 @@ cp data/config.example.json data/config.json  # 情報源をカスタマイズ
 {
   "ai": {
     "provider": "openai",
-    "model": "gpt-4",
-    "api_key_env": "OPENAI_API_KEY"
+    "model": "gpt-4"
   },
   "sources": {
     "rss": [
@@ -295,20 +294,19 @@ cp data/config.example.json data/config.json  # 情報源をカスタマイズ
 
 グループの上限は、プロファイルのフィルタリング後、エンリッチ前に適用されます。`category_groups`と`max_items`を省略した場合、カテゴリ別の上限は適用されません。
 
-`api_key_env`はAPIキーそのものではなく、環境変数の名前でなければなりません。実際のシークレットは`.env`に記述してください。
+すべてのクラウドAIプロバイダーは共通の環境変数`AI_API_KEY`からキーを読み取ります。
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+AI_API_KEY=your-key
 ```
 
-Geminiの場合は`GOOGLE_API_KEY`を使用します。
+Geminiを含むすべてのプロバイダーで同じ変数を使用します。
 
 ```jsonc
 {
   "ai": {
     "provider": "gemini",
-    "model": "gemini-2.0-flash",
-    "api_key_env": "GOOGLE_API_KEY"
+    "model": "gemini-2.0-flash"
   }
 }
 ```

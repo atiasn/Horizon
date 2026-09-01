@@ -136,49 +136,40 @@ class AIProvider(str, Enum):
 AI_PROVIDER_DEFAULTS = {
     AIProvider.ANTHROPIC: {
         "model": "claude-3-5-sonnet-20241022",
-        "api_key_env": "ANTHROPIC_API_KEY",
         "base_url": None,
     },
     AIProvider.OPENAI: {
         "model": "gpt-4",
-        "api_key_env": "OPENAI_API_KEY",
         "base_url": None,
     },
     AIProvider.AZURE: {
         "model": "gpt-4",
-        "api_key_env": "AZURE_OPENAI_API_KEY",
         "base_url": None,
         "azure_endpoint_env": "AZURE_OPENAI_ENDPOINT",
         "api_version": "2024-10-21",
     },
     AIProvider.ALI: {
         "model": "qwen-plus",
-        "api_key_env": "DASHSCOPE_API_KEY",
         "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
     },
     AIProvider.GEMINI: {
         "model": "gemini-1.5-flash",
-        "api_key_env": "GOOGLE_API_KEY",
         "base_url": None,
     },
     AIProvider.DOUBAO: {
         "model": "doubao-pro-32k",
-        "api_key_env": "DOUBAO_API_KEY",
         "base_url": "https://ark.cn-beijing.volces.com/api/v3",
     },
     AIProvider.MINIMAX: {
         "model": "MiniMax-M3",
-        "api_key_env": "MINIMAX_API_KEY",
         "base_url": "https://api.minimax.io/v1",
     },
     AIProvider.DEEPSEEK: {
         "model": "deepseek-chat",
-        "api_key_env": "DEEPSEEK_API_KEY",
         "base_url": "https://api.deepseek.com",
     },
     AIProvider.OLLAMA: {
         "model": "llama3.1",
-        "api_key_env": "",
         "base_url": "http://localhost:11434/v1",
     },
 }
@@ -191,7 +182,6 @@ class AIConfig(BaseModel):
     provider_chain: Optional[str] = None
     model: str
     base_url: Optional[str] = None
-    api_key_env: str
     temperature: float = 0.3
     max_tokens: int = 4096
     throttle_sec: float = 0.0

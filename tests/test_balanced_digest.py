@@ -172,7 +172,6 @@ def test_rejects_settings_for_unknown_profile() -> None:
         ai=AIConfig(
             provider="openai",
             model="test",
-            api_key_env="TEST_API_KEY",
         ),
         sources=SourcesConfig(),
         processing=ProcessingConfig(
@@ -191,7 +190,6 @@ def test_appends_profiles_missing_from_configured_order() -> None:
         ai=AIConfig(
             provider="openai",
             model="test",
-            api_key_env="TEST_API_KEY",
         ),
         sources=SourcesConfig(),
         digest=DigestConfig(profile_order=["tech-news", "tech-blog"]),
@@ -213,7 +211,6 @@ def test_rejects_unknown_profile_order() -> None:
         ai=AIConfig(
             provider="openai",
             model="test",
-            api_key_env="TEST_API_KEY",
         ),
         sources=SourcesConfig(),
         digest=DigestConfig(profile_order=profile_order),
@@ -262,7 +259,6 @@ def test_run_applies_balanced_digest_before_enrichment(tmp_path, monkeypatch) ->
         ai=AIConfig(
             provider="openai",
             model="test",
-            api_key_env="TEST_API_KEY",
             languages=[],
         ),
         sources=SourcesConfig(),
@@ -320,7 +316,6 @@ def test_run_balances_after_twitter_reanalysis(tmp_path, monkeypatch) -> None:
         ai=AIConfig(
             provider="openai",
             model="test",
-            api_key_env="TEST_API_KEY",
             languages=[],
         ),
         sources=SourcesConfig(),

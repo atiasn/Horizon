@@ -41,7 +41,6 @@ def test_load_config_success(tmp_path):
         "ai": {
             "provider": "anthropic",
             "model": "claude-3-sonnet",
-            "api_key_env": "ANTHROPIC_API_KEY"
         },
         "sources": {
             "hackernews": {"enabled": True}
@@ -58,6 +57,48 @@ def test_load_config_success(tmp_path):
     assert config.ai.provider == "anthropic"
 
 
+def test_load_config_applies_ai_environment_overrides(tmp_path, monkeypatch):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({
+        "ai": {
+            "provider": "openai",
+            "model": "old-model",
+            "base_url": "https://old.example/v1",
+        },
+        "sources": {},
+    }), encoding="utf-8")
+    monkeypatch.setenv("AI_PROVIDER", "deepseek")
+    monkeypatch.setenv("AI_MODEL", "new-model")
+    monkeypatch.setenv("AI_BASE_URL", "https://new.example/v1")
+
+    config = StorageManager(data_dir=str(tmp_path)).load_config()
+
+    assert config.ai.provider == "deepseek"
+    assert config.ai.model == "new-model"
+    assert config.ai.base_url == "https://new.example/v1"
+
+
+def test_load_config_keeps_config_for_missing_or_empty_overrides(tmp_path, monkeypatch):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({
+        "ai": {
+            "provider": "openai",
+            "model": "old-model",
+            "base_url": "https://old.example/v1",
+        },
+        "sources": {},
+    }), encoding="utf-8")
+    monkeypatch.delenv("AI_PROVIDER", raising=False)
+    monkeypatch.setenv("AI_MODEL", "new-model")
+    monkeypatch.setenv("AI_BASE_URL", "")
+
+    config = StorageManager(data_dir=str(tmp_path)).load_config()
+
+    assert config.ai.provider == "openai"
+    assert config.ai.model == "new-model"
+    assert config.ai.base_url == "https://old.example/v1"
+
+
 @pytest.mark.parametrize(
     ("legacy_key", "legacy_value"),
     [
@@ -70,7 +111,6 @@ def test_config_rejects_removed_top_level_fields(legacy_key, legacy_value):
         "ai": {
             "provider": "openai",
             "model": "test",
-            "api_key_env": "OPENAI_API_KEY",
         },
         "sources": {},
         legacy_key: legacy_value,
@@ -163,7 +203,6 @@ def test_load_config_expands_env_vars_in_ai_base_url(tmp_path, monkeypatch):
         "ai": {
             "provider": "openai",
             "model": "gpt-4o",
-            "api_key_env": "OPENAI_API_KEY",
             "base_url": "${HORIZON_AI_BASE_URL}",
         },
         "sources": {"hackernews": {"enabled": True}},
@@ -177,14 +216,14 @@ def test_load_config_expands_env_vars_in_ai_base_url(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("language", ["en", "zh-CN", "pt_BR", "sr-Latn-RS"])
 def test_ai_config_accepts_normal_language_codes(language):
-    config = AIConfig(provider="openai", model="gpt-4o", api_key_env="OPENAI_API_KEY", languages=[language])
+    config = AIConfig(provider="openai", model="gpt-4o", languages=[language])
     assert config.languages == [language]
 
 
 @pytest.mark.parametrize("language", ["../outside", "en/../../outside", "en\\outside", ".", ""])
 def test_ai_config_rejects_unsafe_language_codes(language):
     with pytest.raises(ValidationError):
-        AIConfig(provider="openai", model="gpt-4o", api_key_env="OPENAI_API_KEY", languages=[language])
+        AIConfig(provider="openai", model="gpt-4o", languages=[language])
 
 
 def test_save_daily_summary_defensively_rejects_path_escape(tmp_path):

@@ -91,6 +91,17 @@ class StorageManager:
         # out of the JSON file so it is safe to commit to a public repo.
         data = _expand_env_vars(data)
 
+        ai = data.get("ai")
+        if isinstance(ai, dict):
+            for env_name, field in {
+                "AI_PROVIDER": "provider",
+                "AI_MODEL": "model",
+                "AI_BASE_URL": "base_url",
+            }.items():
+                value = os.getenv(env_name, "").strip()
+                if value:
+                    ai[field] = value
+
         try:
             return Config.model_validate(data)
         except ValidationError as e:

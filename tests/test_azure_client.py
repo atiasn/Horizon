@@ -16,7 +16,6 @@ def _make_config(**overrides) -> AIConfig:
     defaults = {
         "provider": AIProvider.AZURE,
         "model": "gpt-4o-deployment",
-        "api_key_env": "AZURE_OPENAI_API_KEY",
         "azure_endpoint_env": "AZURE_OPENAI_ENDPOINT",
         "api_version": "2024-10-21",
         "temperature": 0.3,
@@ -35,7 +34,7 @@ def _mock_response(content: str = '{"ok": true}'):
 
 class TestAzureOpenAIClientInit:
     def test_creates_instance_with_valid_config(self, monkeypatch):
-        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
 
         client = AzureOpenAIClient(_make_config())
@@ -44,14 +43,14 @@ class TestAzureOpenAIClientInit:
         assert client.max_tokens == 4096
 
     def test_raises_when_api_key_missing(self, monkeypatch):
-        monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
+        monkeypatch.delenv("AI_API_KEY", raising=False)
         monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
 
         with pytest.raises(ValueError, match="Missing API key"):
             AzureOpenAIClient(_make_config())
 
     def test_raises_when_endpoint_missing(self, monkeypatch):
-        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         monkeypatch.delenv("AZURE_OPENAI_ENDPOINT", raising=False)
 
         with pytest.raises(ValueError, match="Missing Azure endpoint"):
@@ -60,7 +59,7 @@ class TestAzureOpenAIClientInit:
 
 class TestAzureOpenAIClientComplete:
     def test_uses_max_completion_tokens_for_gpt5_prefix(self, monkeypatch):
-        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
         client = AzureOpenAIClient(_make_config(model="gpt-5-mini"))
 
@@ -75,7 +74,7 @@ class TestAzureOpenAIClientComplete:
         assert "max_tokens" not in call_kwargs
 
     def test_retries_with_max_completion_tokens_for_custom_deployment(self, monkeypatch):
-        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
         client = AzureOpenAIClient(_make_config(model="prod-gpt5-nano"))
 
@@ -100,7 +99,7 @@ class TestAzureOpenAIClientComplete:
 
 class TestFactoryFunction:
     def test_creates_azure_client(self, monkeypatch):
-        monkeypatch.setenv("AZURE_OPENAI_API_KEY", "test-key")
+        monkeypatch.setenv("AI_API_KEY", "test-key")
         monkeypatch.setenv("AZURE_OPENAI_ENDPOINT", "https://example.openai.azure.com")
 
         client = create_ai_client(_make_config())

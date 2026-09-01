@@ -237,8 +237,7 @@ Minimal manual configuration:
 {
   "ai": {
     "provider": "openai",
-    "model": "gpt-4",
-    "api_key_env": "OPENAI_API_KEY"
+    "model": "gpt-4"
   },
   "sources": {
     "rss": [
@@ -299,21 +298,19 @@ results. Categories come from source configuration such as
 Group limits are applied after profile filtering and before enrichment. If
 `category_groups` and `max_items` are omitted, no balanced digest limits apply.
 
-`api_key_env` must be the name of an environment variable, not the API key
-itself. Put the real secret in `.env`:
+Put the AI provider key in the generic `AI_API_KEY` environment variable:
 
 ```bash
-OPENAI_API_KEY=sk-your-key
+AI_API_KEY=your-key
 ```
 
-For Gemini, use `GOOGLE_API_KEY`:
+The same variable is used for every provider, including Gemini:
 
 ```jsonc
 {
   "ai": {
     "provider": "gemini",
-    "model": "gemini-2.0-flash",
-    "api_key_env": "GOOGLE_API_KEY"
+    "model": "gemini-2.0-flash"
   }
 }
 ```

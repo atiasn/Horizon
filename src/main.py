@@ -120,7 +120,6 @@ def print_config_template():
   "ai": {
     "provider": "anthropic",
     "model": "claude-sonnet-4.5-20250929",
-    "api_key_env": "ANTHROPIC_API_KEY",
     "temperature": 0.3,
     "max_tokens": 4096
   },
@@ -187,7 +186,7 @@ def print_config_template():
 }
 
 Also create a .env file with:
-ANTHROPIC_API_KEY=your_api_key_here
+AI_API_KEY=your_api_key_here
 GITHUB_TOKEN=your_github_token_here (optional but recommended)
 """
     console.print(template)

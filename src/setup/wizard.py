@@ -95,20 +95,12 @@ def configure_ai() -> Optional[AIConfig]:
             "Base URL (leave empty for default)", default="", console=console
         )
 
-    # Determine default env var name
-    api_key_env = Prompt.ask(
-        "API key environment variable name",
-        default=provider_defaults.get("api_key_env", "API_KEY"),
-        console=console,
-    )
-
-    # Check if the key is actually set
-    if api_key_env and not os.getenv(api_key_env):
+    if provider_enum != AIProvider.OLLAMA and not os.getenv("AI_API_KEY"):
         console.print(
-            f"[yellow]⚠  {api_key_env} is not set in environment or .env file.[/yellow]"
+            "[yellow]⚠  AI_API_KEY is not set in environment or .env file.[/yellow]"
         )
         console.print("   AI features (smart recommendations) will be skipped.")
-        console.print(f"   Add it to your .env file later: {api_key_env}=your_key_here\n")
+        console.print("   Add it to your .env file later: AI_API_KEY=your_key_here\n")
 
     languages = Prompt.ask(
         "Output languages (comma-separated)",
@@ -121,7 +113,6 @@ def configure_ai() -> Optional[AIConfig]:
         provider=provider_enum,
         model=model,
         base_url=base_url or None,
-        api_key_env=api_key_env,
         temperature=0.3,
         max_tokens=8192,
         languages=lang_list,
@@ -131,7 +122,7 @@ def configure_ai() -> Optional[AIConfig]:
 def _ai_recommendations_available(ai_config: AIConfig) -> bool:
     if ai_config.provider == AIProvider.OLLAMA:
         return True
-    return bool(ai_config.api_key_env and os.getenv(ai_config.api_key_env))
+    return bool(os.getenv("AI_API_KEY"))
 
 
 def get_interests() -> str:
@@ -453,9 +444,7 @@ def main():
             else:
                 console.print("[yellow]AI returned no additional recommendations.[/yellow]")
     else:
-        console.print(
-            f"\n[dim]Skipping AI recommendations ({ai_config.api_key_env} not set)[/dim]"
-        )
+        console.print("\n[dim]Skipping AI recommendations (AI_API_KEY not set)[/dim]")
 
     # Step 5: Interactive source selection
     selected = select_sources(preset_sources, ai_sources)
