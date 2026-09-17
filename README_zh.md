@@ -70,104 +70,40 @@
 
 ## 为什么需要 Horizon？
 
-好新闻分散在各处，坏信息却源源不断。Horizon 为你先完成第一轮筛选：从 Hacker News、Reddit、Telegram、RSS、Twitter/X、GitHub 和 OpenBB 抓取内容，合并重复新闻，用 AI 打分过滤，并为重要内容补充背景解释和社区讨论。
+好内容散落在订阅、社区和时间线里，你的阅读时间却有限。Horizon 替你收集、筛选、去重，再把值得读的内容连同背景和讨论送到面前。
 
-但 Horizon 不只是又一个摘要工具。AI 很擅长降低噪声，但新闻仍然需要人的品味：你信任哪些信息源，哪些评论改变了你对事件的理解，哪些小众来源值得被更多人看见。Horizon 通过可定制的信息源、处理配置文件、模型、语言、分发方式、评论摘要和社区信息源官网，把这层“人味”保留下来。
+读什么，需要你的品味；怎么读，也一样。新闻里你想知道「为什么重要」，技术长文里你想找到「有什么值得借鉴」。Horizon 的 **Profile** 让不同内容有不同的评分标准和呈现方式，也让这份日报更像你亲手挑选的。
 
 ## 功能特性
 
-- **📡 关注你的信息源** — 将 Hacker News、RSS、Reddit、Telegram、Twitter/X、GitHub Release / 用户动态，以及 OpenBB 金融新闻观察列表纳入同一条 pipeline
-- **🤖 把噪声变成阅读清单** — 使用稳定的处理配置文件分析内容，并应用你自己的筛选阈值
-- **🔗 合并重复新闻** — 在生成日报前自动合并来自不同平台的相同故事
-- **🔍 补全背景知识** — 为陌生概念、公司、项目和技术术语补充网络搜索得到的背景解释
-- **💬 读到社区声音** — 收集并总结 Hacker News、Reddit 等来源的评论讨论
-- **🌐 生成双语日报** — 基于同一组信息源生成英文和中文日报
-- **📝 发布日报站点** — 将生成的 Markdown 发布为 GitHub Pages 静态日报站点
-- **📧 邮件分发** — 运行自托管 SMTP/IMAP 邮件列表，自动处理订阅与退订
-- **🔔 推送到聊天和自动化工具** — 将模板化结果发送到飞书、钉钉、Slack、Discord 或自定义 Webhook
-- **🧙 从兴趣开始配置** — 通过交互式向导根据你的兴趣生成个性化信息源配置
-- **⚙️ 调校你的新闻雷达** — 定制信息源、处理配置文件、模型、语言和分发方式
+- **📡 把关注汇到一处** — 从 RSS、Hacker News、Reddit、Telegram、X、GitHub 和金融新闻等来源收集内容。
+- **🎯 值不值得读，你定标准** — 用 Profile 定义评分规则，分别设置筛选门槛，合并同一 Profile 下的重复报道。
+- **🧩 新闻看背景，长文看方法** — 自定义摘要、背景、方案、启示等内容区块，修改 Markdown 提示词和 JSON 配置即可。
+- **💬 多看一层，再下判断** — 按需搜索背景、提炼社区讨论，读到标题之外的信息。
+- **⚖️ 留下刚好够读的量** — 限制日报总条数和各类内容的份额，让热门话题给其他兴趣留点位置。
+- **📬 在你习惯的地方读** — 生成中英双语日报，保存为 Markdown、发布到 Pages，或通过邮件和 Webhook 送达。
+
+### 同一份日报，不同的读法
+
+一个 Profile 是一套可复用的内容处理规则：**什么内容适用、什么值得留下、最后写成什么样。** 内置示例包括：
+
+| 你在读什么 | Profile | 它替你提炼什么 |
+|---|---|---|
+| 科技新闻 | `tech-news` | 事件与背景，按需补充影响和社区讨论 |
+| 技术长文 | `tech-blog` | 背景、方案、值得借鉴的启示 |
+| AI 创作素材 | `ai-creator` | 内容摘要，按需提炼时效意义与创作切入点 |
+
+为信息源指定 Profile，或让 AI 自动匹配。想换一种读法？从现有 Profile 改起，通常无需修改 Python。[定制你的 Profile →](docs/profiles.md)
 
 ## 工作原理
 
-```mermaid
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "fontFamily": "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
-    "fontSize": "18px",
-    "primaryTextColor": "#2d2a3e",
-    "primaryBorderColor": "#e0dbd3",
-    "lineColor": "#7c7891",
-    "tertiaryColor": "#faf8f5",
-    "clusterBkg": "#f3f0eb",
-    "clusterBorder": "#e0dbd3"
-  }
-}}%%
-flowchart LR
-    classDef config fill:#fbbf24,stroke:#d4a017,color:#2d2a3e,stroke-width:1.5px;
-    classDef source fill:#ede7fb,stroke:#6d4aaa,color:#2d2a3e,stroke-width:1.5px;
-    classDef process fill:#ffe8db,stroke:#e0652e,color:#2d2a3e,stroke-width:1.5px;
-    classDef output fill:#f9d7e5,stroke:#be185d,color:#2d2a3e,stroke-width:1.5px;
+![Horizon 架构：十类信息源汇入 Profile 驱动的处理流程，再通过 Markdown、Pages、邮件和 Webhook 分发。](docs/assets/architecture.svg)
 
-    config["⚙️ 配置<br/>信息源、配置文件、模型、输出方式"]
+[OmniGraffle 可编辑图源](docs/assets/architecture.graffle)
 
-     subgraph sources["已配置的信息源"]
-         rss["📡 RSS"]
-         hn["📰 Hacker News"]
-         reddit["💬 Reddit"]
-         telegram["✈️ Telegram"]
-         twitter["🐦 Twitter / X"]
-         github["🐙 GitHub"]
-         openbb["💹 OpenBB"]
-      end
+**Profile 定义处理规则，运行配置掌握阅读偏好。** 每条内容路由到一个 Profile，完成分析、筛选和去重后，再为入选内容生成区块，按 Profile 分组渲染成日报。
 
-    fetch["📥 抓取"]
-    dedup["🧹 新闻去重"]
-    score["🤖 AI 打分与过滤"]
-    enrich["🔎 内容丰富"]
-    summary["📝 总结生成"]
-
-    subgraph outputs["输出形式"]
-        direction TB
-        site["🌐 Pages"]
-        email["📧 邮件"]
-        webhook["🔔 Webhook"]
-        mcp["🧩 MCP"]
-    end
-
-     config --> fetch
-     rss --> fetch
-     hn --> fetch
-     reddit --> fetch
-      telegram --> fetch
-      twitter --> fetch
-      github --> fetch
-      openbb --> fetch
-
-    fetch --> dedup --> score --> enrich --> summary
-    config --> score
-    config --> summary
-    config --> outputs
-
-    summary --> site
-    summary --> email
-    summary --> webhook
-    summary --> mcp
-
-    class config config
-    class rss,hn,reddit,telegram,twitter,github,openbb source
-    class fetch,dedup,score,enrich,summary process
-    class site,email,webhook,mcp output
-```
-
-1. **定义** — 配置信息源、处理配置文件、模型、语言和分发方式。
-2. **抓取** — 并发拉取所有已配置信息源的最新内容。
-3. **去重** — 合并来自不同平台、指向同一故事或 URL 的内容。
-4. **分析与过滤** — 选择处理配置文件，按其提示词分析内容并应用用户配置的阈值。
-5. **丰富** — 生成配置文件定义的内容区块，每个区块只能调用已声明的工具。
-6. **总结** — 将本地化标题、导语、章节和引用来源渲染为 Markdown 日报。
-7. **分发** — 将结果发布到 GitHub Pages、邮件、飞书等 webhook、MCP 或本地文件。
+通过 CLI 运行完整流程，也可通过 [MCP](src/mcp/README.md) 让 AI 助手调用采集、分析和生成等阶段。
 
 ## 赞助
 
@@ -220,10 +156,10 @@ git clone https://github.com/Thysrael/Horizon.git
 cd horizon
 
 # 可选：首次运行前构建逗号分隔的 extras
-docker compose build --build-arg EXTRAS=trafilatura horizon
+docker compose build --build-arg EXTRAS=openbb horizon
 ```
 
-多个 extra 可写为 `EXTRAS=trafilatura,openbb`。`twitter` extra 还需要 Playwright 浏览器及系统依赖，当前 Dockerfile 不会安装这些组件。
+基础安装已包含 `trafilatura` 全文提取。`twitter` extra 还需要 Playwright 浏览器及系统依赖，当前 Dockerfile 不会安装这些组件。
 
 ### 2. 配置
 
@@ -272,10 +208,11 @@ cp data/config.example.json data/config.json  # 自定义信息源
 }
 ```
 
-信息源显式指定 `profile` 时会直接使用该配置文件；省略该字段或设为
-`"auto"` 时，AI 会在可用配置文件中自动匹配。结构和行为详见
-[处理配置文件](docs/profiles.md)。筛选阈值和主题去重等个人偏好应配置在
-`processing.profile_settings`，而不是写入处理配置文件。
+信息源显式指定 `profile` 时会直接使用该 Profile；省略该字段或设为
+`"auto"` 时，AI 会在全部 Profile 中自动匹配。也可设置
+`["tech-news", "finance-news"]`，将匹配范围限定在这些候选项中，每条内容选一个。
+详见 [Profile 指南](docs/profiles.md)。筛选阈值和主题去重等个人偏好配置在
+`processing.profile_settings` 中。
 
 **均衡日报（可选）**
 
@@ -302,7 +239,7 @@ cp data/config.example.json data/config.json  # 自定义信息源
 }
 ```
 
-分组限额在配置文件筛选之后、内容补充之前执行。未配置
+分组限额在 Profile 筛选之后、内容补充之前执行。未配置
 `category_groups` 和 `max_items` 时，不应用均衡日报限额。
 
 所有云端 AI Provider 都从通用环境变量 `AI_API_KEY` 读取密钥；不要将密钥写入 `data/config.json`。
@@ -336,7 +273,7 @@ docker compose run --rm horizon [OPTIONS]
 
 ### 4. 自动化（可选）
 
-Horizon 非常适合作为 **GitHub Actions** 定时任务运行。查看 [`.github/workflows/daily-summary.yml`](.github/workflows/daily-summary.yml) 获取现成的工作流配置，可自动生成日报并部署到 GitHub Pages。
+可使用 **GitHub Actions** 定时运行 Horizon。[每日工作流模板](.github/workflows/daily-summary.yml.disabled) 当前处于禁用状态；根据你的部署配置后，将文件重命名为 `daily-summary.yml` 即可启用。
 
 ## 支持的信息源
 
@@ -346,9 +283,12 @@ Horizon 非常适合作为 **GitHub Actions** 定时任务运行。查看 [`.git
 | **RSS / Atom** | 任意 RSS 或 Atom 订阅源 | — |
 | **Reddit** | Subreddit 帖子 + 用户动态 | 支持（前 N 条评论） |
 | **Telegram** | 公开频道消息 | — |
-| **Twitter / X** | 特定用户的推文 | 支持（前 N 条回复） |
+| **Twitter / X** | 用户推文 + 关键词搜索（Apify） | 支持（前 N 条回复） |
 | **GitHub** | 用户动态 & 仓库 Release | — |
 | **OpenBB** | 按观察列表 / provider 抓取金融公司新闻 | — |
+| **OSS Insight** | 热门开源仓库 | — |
+| **GDELT** | 按查询搜索新闻 | — |
+| **Google News** | 通过 RSS 搜索新闻 | — |
 
 ## 日报可以去哪里
 
@@ -359,16 +299,15 @@ Horizon 支持通过多种方式发布和分发生成的日报：
 | **GitHub Pages 日报站点** | 将生成的 Markdown 复制到 `docs/`，通过 GitHub Pages 发布为每日更新的静态日报站点 |
 | **邮件订阅** | 通过 SMTP/IMAP 向订阅者发送日报，并自动处理订阅/退订请求 |
 | **Webhook 通知** | 在成功或失败时将结果推送到飞书、钉钉、Slack、Discord 或任意 Webhook 端点 |
-| **MCP Server** | 将抓取、打分、过滤、富化、摘要和完整 pipeline 暴露为工具，供 AI 助手调用 |
 
-具体配置见[配置指南](docs/configuration.md)。MCP 工具说明和客户端接入见 [`src/mcp/README.md`](src/mcp/README.md) 与 [`src/mcp/integration.md`](src/mcp/integration.md)。
+投递配置见[配置指南](docs/configuration.md)。希望让 AI 助手调用流水线各阶段，可接入 **MCP Server**：[工具说明](src/mcp/README.md) · [客户端接入](src/mcp/integration.md)。
 
 ## 文档
 
 | 文档 | 内容 |
 |------|------|
-| [配置指南](docs/configuration.md) | AI 模型、信息源、处理配置文件、过滤、邮件、Webhook、GitHub Pages 和 MCP 配置 |
-| [处理配置文件](docs/profiles.md) | 配置文件路由、提示词、运行时筛选偏好、丰富区块和工具 |
+| [配置指南](docs/configuration.md) | AI 模型、信息源、Profile、筛选、邮件、Webhook、GitHub Pages 和 MCP 配置 |
+| [Profile 指南](docs/profiles.md) | 内置读法、自定义评分与内容区块、路由和工具权限 |
 | [评分机制](docs/scoring.md) | Horizon 如何评估和排序新闻 |
 | [抓取器](docs/scrapers.md) | 信息源抓取器说明和扩展细节 |
 | [内容提取器](docs/extractors.md) | RSS 信息源的全文提取 |
@@ -376,7 +315,7 @@ Horizon 支持通过多种方式发布和分发生成的日报：
 
 ## 项目状态
 
-Horizon 已经支持完整的日报流程：多源抓取、基于配置文件的分析与内容丰富、去重、评论摘要、双语生成、GitHub Pages 发布、邮件分发、Webhook 推送、Docker 部署、MCP 集成和配置向导。
+Horizon 已经支持完整的日报流程：多源抓取、Profile 驱动的分析与内容生成、去重、评论摘要、双语生成、GitHub Pages 发布、邮件分发、Webhook 推送、Docker 部署、MCP 集成和配置向导。
 
 计划中的改进：
 

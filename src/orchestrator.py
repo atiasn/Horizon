@@ -32,6 +32,7 @@ from .ai.summarizer import DailySummarizer
 from .ai.enricher import ContentEnricher, EnrichmentBatchResult
 from .ai.tokens import get_usage_snapshot
 from .processing import ProfileRegistry
+from .processing.tools import ToolRegistry
 
 
 _TRACKING_QUERY_PARAMETERS = {
@@ -1031,6 +1032,7 @@ class HorizonOrchestrator:
             self.profiles,
             self.config.ai.languages,
             console=self.console,
+            tools=ToolRegistry(self.storage.summaries_dir),
         )
         result = await enricher.enrich_batch(items)
         self.console.print(
