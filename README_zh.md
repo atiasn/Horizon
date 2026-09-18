@@ -28,7 +28,7 @@
 
 📡 构建你专属的 AI 新闻雷达，生成中英双语日报。 | Your own AI-powered news radar.
 
-[📖 在线演示](https://thysrael.github.io/Horizon/) · [📋 配置指南](https://thysrael.github.io/Horizon/configuration) · [English](README.md) · [日本語](README_ja.md)
+[📖 在线演示](https://thysrael.github.io/Horizon/) · [📋 配置指南](https://thysrael.github.io/Horizon/configuration) · [💬 QQ 群](#交流群) · [English](README.md) · [日本語](README_ja.md)
 
 </div>
 
@@ -322,6 +322,17 @@ Horizon 已经支持完整的日报流程：多源抓取、Profile 驱动的分�
 - 更多信息源类型，例如 Discord
 - 在 GitHub 上发布 Release
 - 发布到 PyPI，支持通过 `pip install` 安装
+
+## 交流群
+
+欢迎加入 Horizon 用户与开发交流群，分享信息源、交流 Profile，或讨论部署和开发。
+
+<p align="center">
+  <img src="docs/assets/qq-group.png" alt="Horizon QQ 群 1106121909 的入群二维码" width="240" height="240" />
+  <br />
+  <strong>QQ 群号：1106121909</strong><br />
+  使用 QQ 扫码，或搜索群号加入。
+</p>
 
 ## 贡献
 

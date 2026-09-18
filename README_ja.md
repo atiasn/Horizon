@@ -28,7 +28,7 @@
 
 📡 あなた専用のAI搭載ニュースレーダー。英語と中国語で日次ブリーフィングを生成します。 | 构建你专属的 AI 新闻雷达
 
-[📖 ライブデモ](https://thysrael.github.io/Horizon/) · [📋 設定ガイド](https://thysrael.github.io/Horizon/configuration) · [English](README.md) · [简体中文](README_zh.md)
+[📖 ライブデモ](https://thysrael.github.io/Horizon/) · [📋 設定ガイド](https://thysrael.github.io/Horizon/configuration) · [💬 QQグループ](#コミュニティ) · [English](README.md) · [简体中文](README_zh.md)
 
 </div>
 
@@ -336,6 +336,17 @@ Horizonはすでに日次ブリーフィングの全ループをサポートし�
 - Discordなど、より多くの情報源タイプ
 - GitHubでのリリース公開
 - `pip install`用にPyPIへパッケージを公開
+
+## コミュニティ
+
+Horizonのユーザー・開発者向けQQグループで、情報源やプロファイル、導入のヒントを共有しましょう。
+
+<p align="center">
+  <img src="docs/assets/qq-group.png" alt="Horizon QQグループ 1106121909 の参加用QRコード" width="240" height="240" />
+  <br />
+  <strong>QQグループ番号：1106121909</strong><br />
+  QQでスキャンするか、グループ番号を検索して参加できます。
+</p>
 
 ## コントリビューション
 

@@ -27,7 +27,7 @@
 
 📡 Your own AI-powered news radar. Generates daily briefings in English & Chinese. | 构建你专属的 AI 新闻雷达
 
-[📖 Live Demo](https://thysrael.github.io/Horizon/) · [📋 Configuration Guide](https://thysrael.github.io/Horizon/configuration) · [简体中文](README_zh.md) · [日本語](README_ja.md)
+[📖 Live Demo](https://thysrael.github.io/Horizon/) · [📋 Configuration Guide](https://thysrael.github.io/Horizon/configuration) · [💬 QQ Group](#community) · [简体中文](README_zh.md) · [日本語](README_ja.md)
 
 </div>
 
@@ -339,6 +339,17 @@ Planned improvements:
 - More source types, such as Discord
 - Publish releases on GitHub
 - Publish the package to PyPI for `pip install`
+
+## Community
+
+Join the Horizon user and developer QQ group to share sources, profiles, and deployment tips.
+
+<p align="center">
+  <img src="docs/assets/qq-group.png" alt="QR code for Horizon QQ group 1106121909" width="240" height="240" />
+  <br />
+  <strong>QQ group: 1106121909</strong><br />
+  Scan with QQ or search the group number to join.
+</p>
 
 ## Contributing
 
