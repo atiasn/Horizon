@@ -511,6 +511,14 @@ class WebhookConfig(BaseModel):
         return v
 
 
+class WeChatConfig(BaseModel):
+    """Optional iLink delivery; credentials live in the data directory's session file."""
+
+    enabled: bool = False
+    languages: Optional[List[str]] = None
+    chunk_size: int = Field(default=4000, gt=0, le=4000)
+
+
 class EmailConfig(BaseModel):
     """Email configuration for updates/subscriptions."""
 
@@ -606,3 +614,4 @@ class Config(BaseModel):
     extractors: Dict[str, ExtractorConfig] = Field(default_factory=dict)
     email: Optional[EmailConfig] = None
     webhook: Optional[WebhookConfig] = None
+    wechat: Optional[WeChatConfig] = None
